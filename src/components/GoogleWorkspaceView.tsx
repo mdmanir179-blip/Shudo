@@ -14,10 +14,9 @@ import {
   RefreshCw,
   Clock,
   UserCheck,
-  History,
-  Info,
-  CheckCircle2,
-  Edit3
+  Edit3,
+  ArrowLeft,
+  X
 } from 'lucide-react';
 
 interface GoogleWorkspaceViewProps {
@@ -51,8 +50,105 @@ export const GoogleWorkspaceView: React.FC<GoogleWorkspaceViewProps> = ({
     }
   };
 
+  // FULL SCREEN VIEW: HIDES ALL OTHER OPTIONS AND MAXIMIZES THE SHEET/DOC (as requested: "google sheet, docs jokhon full screen korbo baki option guli hide koro")
+  if (fullscreen && selectedDoc) {
+    const isSheet = selectedDoc.type === 'sheet';
+
+    return (
+      <div className="fixed inset-0 z-50 bg-white flex flex-col h-screen w-screen overflow-hidden animate-in fade-in duration-150">
+        {/* Fullscreen Clean Top Navigation Bar */}
+        <div className="h-14 px-4 bg-white border-b border-slate-200 flex items-center justify-between shrink-0 gap-3 shadow-xs">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Exit Fullscreen Button */}
+            <button
+              onClick={() => setFullscreen(false)}
+              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors flex items-center gap-1.5 border border-slate-200 text-xs font-semibold shrink-0"
+              title="Exit Full Screen"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Exit Fullscreen</span>
+            </button>
+
+            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+
+            <div className="flex items-center gap-2 truncate">
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                isSheet ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+              }`}>
+                {isSheet ? <FileSpreadsheet className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+              </div>
+              <span className="font-extrabold text-slate-900 text-sm truncate">
+                {selectedDoc.title}
+              </span>
+              {selectedDoc.lastUpdatedBy && (
+                <span className="hidden md:flex items-center gap-1 text-[11px] text-slate-500 font-medium ml-2">
+                  <UserCheck className="w-3 h-3 text-emerald-600" />
+                  <span>{selectedDoc.lastUpdatedBy}</span>
+                  <span className="text-slate-300">•</span>
+                  <Clock className="w-3 h-3 text-slate-400" />
+                  <span>{selectedDoc.lastUpdatedAt ? formatDateTime(selectedDoc.lastUpdatedAt) : ''}</span>
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Right Toolbar Controls */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Log Update Button */}
+            <button
+              onClick={() => onOpenLogUpdate(selectedDoc)}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 transition-colors shadow-emerald-600/15"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Log Sheet Update</span>
+            </button>
+
+            <button
+              onClick={() => setIframeKey((prev) => prev + 1)}
+              title="Reload Sheet Frame"
+              className="p-2 text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 text-xs flex items-center gap-1 transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+
+            <a
+              href={selectedDoc.url}
+              target="_blank"
+              rel="noreferrer"
+              className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
+              <span className="hidden sm:inline">Open Drive</span>
+            </a>
+
+            <button
+              onClick={() => setFullscreen(false)}
+              title="Minimize / Exit Fullscreen"
+              className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* 100% Fullscreen Iframe: Completely fills screen with zero clutter or other options */}
+        <div className="flex-1 w-full h-full relative bg-white">
+          <iframe
+            key={iframeKey}
+            src={selectedDoc.embedUrl || selectedDoc.url}
+            title={selectedDoc.title}
+            allow="clipboard-read; clipboard-write;"
+            className="w-full h-full border-0 bg-white"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // STANDARD WORKSPACE VIEW (When NOT in Full Screen)
   return (
-    <div className={`space-y-6 ${fullscreen ? 'fixed inset-0 z-50 bg-white p-4 overflow-auto' : ''}`}>
+    <div className="space-y-6">
       {/* Header and Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
@@ -69,25 +165,13 @@ export const GoogleWorkspaceView: React.FC<GoogleWorkspaceViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {fullscreen && (
-            <button
-              onClick={() => setFullscreen(false)}
-              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
-            >
-              <Minimize2 className="w-3.5 h-3.5" />
-              <span>Exit Fullscreen</span>
-            </button>
-          )}
-
-          <button
-            onClick={onOpenAddDoc}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Google Sheet / Doc</span>
-          </button>
-        </div>
+        <button
+          onClick={onOpenAddDoc}
+          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Add Google Sheet / Doc</span>
+        </button>
       </div>
 
       {/* Sheet / Doc Selector Tabs */}
@@ -166,7 +250,6 @@ export const GoogleWorkspaceView: React.FC<GoogleWorkspaceViewProps> = ({
 
             {/* Quick Actions */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* PRIMARY REQUIREMENT BUTTON: Record Google Sheet update with name and time */}
               <button
                 onClick={() => onOpenLogUpdate(selectedDoc)}
                 className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors shadow-emerald-600/10"
@@ -194,12 +277,14 @@ export const GoogleWorkspaceView: React.FC<GoogleWorkspaceViewProps> = ({
                 <span>Open in Drive</span>
               </a>
 
+              {/* Fullscreen Toggle Button */}
               <button
-                onClick={() => setFullscreen(!fullscreen)}
-                title={fullscreen ? 'Exit Fullscreen' : 'Fullscreen Editor'}
-                className="p-1.5 text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-lg text-xs transition-colors"
+                onClick={() => setFullscreen(true)}
+                title="Fullscreen Editor (Hides all other options)"
+                className="px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
               >
-                {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Full Screen</span>
               </button>
 
               {deleteConfirmId === selectedDoc.id ? (
@@ -233,12 +318,12 @@ export const GoogleWorkspaceView: React.FC<GoogleWorkspaceViewProps> = ({
 
             {/* Help Bar */}
             <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600">
-              <span className="flex items-center gap-1.5">
-                <Info className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span>
-                  You can edit values directly inside this sheet. Remember to click <strong>"Log My Sheet Update"</strong> after modifying numbers to save your name and exact timestamp into the audit record!
+                  Click <strong>"Full Screen"</strong> above to hide all menus and focus 100% on this sheet!
                 </span>
-              </span>
+              </div>
               <button
                 onClick={() => onOpenLogUpdate(selectedDoc)}
                 className="shrink-0 px-2.5 py-1 text-emerald-700 font-semibold hover:underline"
