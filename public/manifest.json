@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "OmniSeller Hub",
+  "short_name": "OmniSeller",
+  "description": "Multi-Channel Seller & Google Sheets Desktop Workspace",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#FFFFFF",
+  "background_color": "#FFFFFF",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

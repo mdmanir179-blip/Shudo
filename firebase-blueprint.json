@@ -1,0 +1,109 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile document",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Auth UID" },
+        "email": { "type": "string", "description": "Email address" },
+        "displayName": { "type": "string", "description": "Display name" },
+        "photoURL": { "type": "string", "description": "Profile picture URL" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Portal": {
+      "title": "Portal",
+      "description": "Ecommerce seller portal configuration",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Portal name (e.g. Flipkart, Amazon, Meesho, Swiggy, Blinkit)" },
+        "category": { "type": "string", "description": "Category or platform code" },
+        "url": { "type": "string", "description": "Direct seller hub login/dashboard URL" },
+        "notes": { "type": "string", "description": "Optional notes or credentials reminder" },
+        "ownerId": { "type": "string", "description": "UID of the owner" },
+        "color": { "type": "string", "description": "Badge color code" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "description": "Update timestamp" }
+      },
+      "required": ["name", "url", "ownerId"]
+    },
+    "Document": {
+      "title": "Document",
+      "description": "Google Docs and Google Sheets entry with embed and edit capabilities",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Document title" },
+        "type": { "type": "string", "enum": ["sheet", "doc"], "description": "Document type" },
+        "url": { "type": "string", "description": "Original shareable Google Docs/Sheets URL" },
+        "embedUrl": { "type": "string", "description": "Formatted embed URL for live editing" },
+        "description": { "type": "string", "description": "Summary or purpose" },
+        "ownerId": { "type": "string", "description": "UID of document creator" },
+        "lastUpdatedBy": { "type": "string", "description": "Name of last updater" },
+        "lastUpdatedEmail": { "type": "string", "description": "Email of last updater" },
+        "lastUpdatedAt": { "type": "string", "description": "Timestamp of last edit" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["title", "type", "url", "ownerId"]
+    },
+    "SheetLog": {
+      "title": "SheetLog",
+      "description": "Audit record of who updated a Google Sheet with name and time",
+      "type": "object",
+      "properties": {
+        "documentId": { "type": "string", "description": "ID of the associated Document" },
+        "sheetTitle": { "type": "string", "description": "Title of the sheet at the time of update" },
+        "userName": { "type": "string", "description": "Name of the person who updated" },
+        "userEmail": { "type": "string", "description": "Email of the person who updated" },
+        "userId": { "type": "string", "description": "UID of the updater" },
+        "changeSummary": { "type": "string", "description": "Details of the changes or update made" },
+        "actionType": { "type": "string", "description": "Type of action e.g. edit, sync, inventory_update" },
+        "timestamp": { "type": "string", "description": "Timestamp string of the modification" },
+        "ownerId": { "type": "string", "description": "Owner of the document workspace" },
+        "createdAt": { "type": "string", "description": "Record creation time" }
+      },
+      "required": ["documentId", "userName", "changeSummary", "ownerId"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Order received across seller portals",
+      "type": "object",
+      "properties": {
+        "portalName": { "type": "string", "description": "Flipkart, Amazon, Meesho, Swiggy, Blinkit, etc." },
+        "portalId": { "type": "string", "description": "ID of portal" },
+        "orderNumber": { "type": "string", "description": "Order reference code" },
+        "customerName": { "type": "string", "description": "Customer or store destination" },
+        "amount": { "type": "number", "description": "Order value in currency" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "dispatched", "delivered", "cancelled", "returned"] },
+        "itemsCount": { "type": "number", "description": "Number of items" },
+        "date": { "type": "string", "description": "Order date in YYYY-MM-DD" },
+        "ownerId": { "type": "string", "description": "Owner UID" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["portalName", "amount", "status", "date", "ownerId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile data"
+    },
+    "/portals/{portalId}": {
+      "schema": { "$ref": "#/entities/Portal" },
+      "description": "Seller portal link bookmarks and credentials"
+    },
+    "/documents/{documentId}": {
+      "schema": { "$ref": "#/entities/Document" },
+      "description": "Saved Google Docs and Sheets with embed targets"
+    },
+    "/sheet_logs/{logId}": {
+      "schema": { "$ref": "#/entities/SheetLog" },
+      "description": "Audit trail logging who updated sheets and exact timestamps"
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Order tracking entries for seller portal analytics and trends"
+    }
+  }
+}

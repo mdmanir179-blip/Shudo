@@ -1,0 +1,8 @@
+{
+  "name": "OmniSeller Hub - Multi-Channel E-Commerce & Sheets Workspace",
+  "description": "Unified seller management workspace for Flipkart, Amazon, Meesho, Swiggy, and Blinkit with embedded Google Sheets audit log and multi-channel order trend analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
