@@ -10,7 +10,6 @@ import {
   Plus,
   Maximize2,
   Minimize2,
-  Trash2,
   PanelLeftClose,
   ShieldCheck
 } from 'lucide-react';
@@ -21,7 +20,6 @@ interface SidebarProps {
   onOpenAddPortal: () => void;
   onOpenAddDoc: () => void;
   onOpenAddOrder: () => void;
-  onOpenClearData: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   isOpen: boolean;
@@ -35,7 +33,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenAddPortal,
   onOpenAddDoc,
   onOpenAddOrder,
-  onOpenClearData,
   isFullscreen,
   onToggleFullscreen,
   isOpen,
@@ -205,15 +202,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <span className="text-[10px] text-slate-400 font-mono">F11</span>
         </button>
 
-        {/* Clear Data Button (opens ClearDataModal) */}
-        <button
-          onClick={onOpenClearData}
-          title="Wipe demo orders and sample sheets"
-          className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors text-left"
-        >
-          <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-          <span>Clear Workspace Data</span>
-        </button>
 
         {/* Direct Workspace Status */}
         <div className="pt-2 border-t border-slate-200/70 flex items-center justify-between text-[11px] text-slate-500">

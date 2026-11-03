@@ -16,7 +16,6 @@ import { QuickOrderModal } from './components/QuickOrderModal';
 import { AddPortalModal } from './components/AddPortalModal';
 import { AddDocModal } from './components/AddDocModal';
 import { LogSheetUpdateModal } from './components/LogSheetUpdateModal';
-import { ClearDataModal } from './components/ClearDataModal';
 
 const DEFAULT_PORTALS = [
   {
@@ -83,7 +82,6 @@ function MainWorkspace() {
   const [isAddDocModalOpen, setIsAddDocModalOpen] = useState(false);
   const [isAddOrderModalOpen, setIsAddOrderModalOpen] = useState(false);
   const [isLogUpdateModalOpen, setIsLogUpdateModalOpen] = useState(false);
-  const [isClearDataModalOpen, setIsClearDataModalOpen] = useState(false);
   const [logTargetDoc, setLogTargetDoc] = useState<DocSheetItem | null>(null);
 
   // Monitor desktop fullscreen state
@@ -406,7 +404,6 @@ function MainWorkspace() {
         onOpenAddPortal={() => setIsAddPortalModalOpen(true)}
         onOpenAddDoc={() => setIsAddDocModalOpen(true)}
         onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
-        onOpenClearData={() => setIsClearDataModalOpen(true)}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
         isOpen={isSidebarOpen}
@@ -519,15 +516,6 @@ function MainWorkspace() {
           setLogTargetDoc(null);
         }}
         document={logTargetDoc}
-      />
-
-      <ClearDataModal
-        isOpen={isClearDataModalOpen}
-        onClose={() => setIsClearDataModalOpen(false)}
-        onDataCleared={() => {
-          setSelectedPortal(null);
-          setSelectedDoc(null);
-        }}
       />
     </div>
   );
