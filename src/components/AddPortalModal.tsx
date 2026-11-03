@@ -77,12 +77,17 @@ export const AddPortalModal: React.FC<AddPortalModalProps> = ({ isOpen, onClose,
     e.preventDefault();
     if (!name.trim() || !url.trim()) return;
 
+    let cleanUrl = url.trim();
+    if (!/^https?:\/\//i.test(cleanUrl)) {
+      cleanUrl = 'https://' + cleanUrl;
+    }
+
     setLoading(true);
     try {
       await addDoc(collection(db, 'portals'), {
         name: name.trim(),
         platform,
-        url: url.trim(),
+        url: cleanUrl,
         color,
         notes: notes.trim(),
         ownerId: 'workspace_user',

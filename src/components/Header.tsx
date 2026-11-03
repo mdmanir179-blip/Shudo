@@ -1,6 +1,6 @@
 import React from 'react';
 import { PortalLink, OrderRecord } from '../types';
-import { Plus, Menu, PanelLeft } from 'lucide-react';
+import { Plus, Menu, ExternalLink } from 'lucide-react';
 
 interface HeaderProps {
   portals: PortalLink[];
@@ -29,9 +29,24 @@ export const Header: React.FC<HeaderProps> = ({
   isSidebarOpen,
   onToggleSidebar
 }) => {
+  const launchDirectWindow = (url: string, name: string) => {
+    let clean = url.trim();
+    if (!/^https?:\/\//i.test(clean)) {
+      clean = 'https://' + clean;
+    }
+    const win = window.open(
+      clean,
+      `portal_${name.replace(/\s+/g, '_')}`,
+      'width=1280,height=850,menubar=no,toolbar=yes,location=yes,status=yes,resizable=yes,scrollbars=yes'
+    );
+    if (win) {
+      win.focus();
+    }
+  };
+
   return (
     <header className="h-14 bg-white border-b border-slate-200 px-3 sm:px-4 flex items-center justify-between shrink-0 overflow-x-auto select-none gap-2">
-      {/* Menu Hide/Show Toggle Button (as requested: "menu hide/show button add koro") */}
+      {/* Menu Hide/Show Toggle Button */}
       <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={onToggleSidebar}
@@ -48,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block" />
       </div>
 
-      {/* Portals list (SHOW ONLY PORTALS IN HEADER: "hedder a sudhu portal guli show koro") */}
+      {/* Portals list (SHOW ONLY PORTALS IN HEADER) */}
       <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none flex-1">
         {portals.map((p) => {
           const isSelected = selectedPortal?.id === p.id;
@@ -56,31 +71,53 @@ export const Header: React.FC<HeaderProps> = ({
           const color = p.color || PORTAL_COLORS[p.name] || '#3B82F6';
 
           return (
-            <button
+            <div
               key={p.id}
-              onClick={() => onSelectPortal(p)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${
+              className={`flex items-center rounded-xl text-xs font-bold transition-all shrink-0 border ${
                 isSelected
                   ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
               }`}
             >
-              <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: color }}
-              />
-              <span className="truncate">{p.name}</span>
-
-              {portalOrdersCount > 0 ? (
+              {/* Click to open in full screen workspace */}
+              <button
+                onClick={() => onSelectPortal(p)}
+                className="flex items-center gap-2 px-3 py-1.5 truncate"
+                title={`Open ${p.name} in Workspace`}
+              >
                 <span
-                  className={`text-[10px] font-extrabold px-1.5 py-0.2 rounded-full ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                  }`}
-                >
-                  {portalOrdersCount}
-                </span>
-              ) : null}
-            </button>
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="truncate">{p.name}</span>
+
+                {portalOrdersCount > 0 ? (
+                  <span
+                    className={`text-[10px] font-extrabold px-1.5 py-0.2 rounded-full ${
+                      isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    {portalOrdersCount}
+                  </span>
+                ) : null}
+              </button>
+
+              {/* Quick direct desk launcher */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  launchDirectWindow(p.url, p.name);
+                }}
+                title={`Launch ${p.name} directly in dedicated window`}
+                className={`p-1.5 pr-2.5 rounded-r-xl transition-colors border-l ${
+                  isSelected
+                    ? 'border-slate-800 text-blue-300 hover:text-white'
+                    : 'border-slate-100 text-slate-400 hover:text-blue-600'
+                }`}
+              >
+                <ExternalLink className="w-3 h-3" />
+              </button>
+            </div>
           );
         })}
 
