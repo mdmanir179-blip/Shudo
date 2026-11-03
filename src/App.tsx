@@ -163,10 +163,122 @@ function MainWorkspace() {
       }
     );
 
-    // 4. Orders listener
+    // 4. Consignment POs & Orders listener
     const unsubOrders = onSnapshot(
       collection(db, 'orders'),
-      (snapshot) => {
+      async (snapshot) => {
+        if (snapshot.empty) {
+          const today = new Date();
+          const todayStr = today.toISOString().split('T')[0];
+
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+          const dayAfter = new Date();
+          dayAfter.setDate(dayAfter.getDate() + 2);
+          const dayAfterStr = dayAfter.toISOString().split('T')[0];
+
+          const sampleConsignments = [
+            {
+              portalName: 'Swiggy',
+              orderNumber: 'PO-SWG-9021',
+              poNumber: 'PO-SWG-9021',
+              destinationHub: 'Swiggy Instamart FC - Whitefield, Bangalore',
+              amount: 48500,
+              boxesCount: 14,
+              itemsCount: 420,
+              status: 'open',
+              date: todayStr,
+              shippingDate: todayStr,
+              appointmentDate: tomorrowStr,
+              appointmentTime: '10:00 AM - 01:00 PM',
+              carrier: 'Delhivery Surface Logistics',
+              notes: 'FMCG & Groceries Assortment. Packaging verified.',
+              ownerId: 'workspace_user',
+              createdAt: new Date().toISOString()
+            },
+            {
+              portalName: 'Swiggy',
+              orderNumber: 'PO-SWG-8874',
+              poNumber: 'PO-SWG-8874',
+              destinationHub: 'Swiggy Instamart FC - Electronic City',
+              amount: 62000,
+              boxesCount: 18,
+              itemsCount: 560,
+              status: 'in_transit',
+              date: todayStr,
+              shippingDate: todayStr,
+              appointmentDate: todayStr,
+              appointmentTime: '02:30 PM - 04:30 PM',
+              carrier: 'BlueDart Express (KA01-MJ-8812)',
+              notes: 'Truck on route to FC gate. Delivery slot booked.',
+              ownerId: 'workspace_user',
+              createdAt: new Date().toISOString()
+            },
+            {
+              portalName: 'Blinkit',
+              orderNumber: 'PO-BLNK-4412',
+              poNumber: 'PO-BLNK-4412',
+              destinationHub: 'Blinkit Mother Hub - Sector 62, Gurgaon',
+              amount: 37500,
+              boxesCount: 9,
+              itemsCount: 310,
+              status: 'in_transit',
+              date: todayStr,
+              shippingDate: todayStr,
+              appointmentDate: tomorrowStr,
+              appointmentTime: '09:30 AM - 11:30 AM',
+              carrier: 'Shadowfax Quick Delivery',
+              notes: 'Packaged in standardized quick-commerce cartons.',
+              ownerId: 'workspace_user',
+              createdAt: new Date().toISOString()
+            },
+            {
+              portalName: 'Flipkart',
+              orderNumber: 'PO-FLIP-1029',
+              poNumber: 'PO-FLIP-1029',
+              destinationHub: 'Flipkart Bilaspur Fulfillment Center',
+              amount: 84000,
+              boxesCount: 24,
+              itemsCount: 780,
+              status: 'open',
+              date: todayStr,
+              shippingDate: todayStr,
+              appointmentDate: dayAfterStr,
+              appointmentTime: '11:00 AM - 02:00 PM',
+              carrier: 'Ekart Logistics',
+              notes: 'B2B Consignment Invoice & E-Way Bill Attached.',
+              ownerId: 'workspace_user',
+              createdAt: new Date().toISOString()
+            },
+            {
+              portalName: 'Amazon',
+              orderNumber: 'PO-AMZ-7719',
+              poNumber: 'PO-AMZ-7719',
+              destinationHub: 'Amazon FC BLR8 - Devanahalli',
+              amount: 96000,
+              boxesCount: 32,
+              itemsCount: 1100,
+              status: 'delivered',
+              date: todayStr,
+              shippingDate: todayStr,
+              appointmentDate: todayStr,
+              appointmentTime: '10:00 AM',
+              carrier: 'ATS Logistics',
+              notes: 'Gate-in complete, GRN verified and accepted.',
+              deliveredAt: new Date().toISOString(),
+              ownerId: 'workspace_user',
+              createdAt: new Date().toISOString()
+            }
+          ];
+
+          for (const c of sampleConsignments) {
+            await addDoc(collection(db, 'orders'), c);
+          }
+          return;
+        }
+
         const items = snapshot.docs.map((docSnap) => ({
           id: docSnap.id,
           ...docSnap.data()
@@ -220,6 +332,7 @@ function MainWorkspace() {
           isSidebarOpen={isSidebarOpen}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           activeTab={activeTab}
+          orders={orders}
           onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
         />
 

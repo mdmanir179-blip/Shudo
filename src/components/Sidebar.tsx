@@ -81,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <LayoutDashboard className="w-4 h-4 shrink-0" />
-          <span>Orders & Trends</span>
+          <span>Consignments & POs</span>
         </button>
 
         <button
@@ -131,7 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
           >
             <Plus className="w-3.5 h-3.5 text-blue-600" />
-            <span>Record Order</span>
+            <span>+ Consignment PO</span>
           </button>
 
           <button

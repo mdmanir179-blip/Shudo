@@ -1,11 +1,14 @@
 import React from 'react';
 import { Menu, Plus, ShoppingBag, Calendar } from 'lucide-react';
 import { ActiveTab } from './Navbar';
+import { OrderRecord } from '../types';
+import { NotificationCenter } from './NotificationCenter';
 
 interface HeaderProps {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
   activeTab: ActiveTab;
+  orders?: OrderRecord[];
   onOpenAddOrder?: () => void;
 }
 
@@ -20,6 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
   isSidebarOpen,
   onToggleSidebar,
   activeTab,
+  orders = [],
   onOpenAddOrder
 }) => {
   const currentTab = TAB_TITLES[activeTab] || { title: 'OmniSeller Workspace', category: 'Workspace' };
@@ -56,22 +60,25 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Right: Quick actions (Date + Quick Order) */}
-      <div className="flex items-center gap-2.5 shrink-0">
+      {/* Right: Quick actions (Date + Notification Center + Quick Order) */}
+      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
         <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-500">
           <Calendar className="w-3.5 h-3.5 text-slate-400" />
           <span>{todayFormatted}</span>
         </div>
 
+        {/* Date Notifications Bell Dropdown */}
+        <NotificationCenter orders={orders || []} />
+
         {onOpenAddOrder && (
           <button
             onClick={onOpenAddOrder}
-            title="Log new order"
+            title="Log new consignment PO"
             className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
             <ShoppingBag className="w-3.5 h-3.5 hidden sm:inline" />
-            <span>Quick Order</span>
+            <span>New PO Consignment</span>
           </button>
         )}
       </div>
