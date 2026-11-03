@@ -13,7 +13,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
-export type ActiveTab = 'dashboard' | 'portals' | 'sheets' | 'logs';
+export type ActiveTab = 'dashboard' | 'orders' | 'analytics' | 'portals' | 'sheets' | 'logs';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -52,13 +52,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                   OmniSeller<span className="text-blue-600">Hub</span>
                 </span>
                 <span className="hidden sm:block text-[10px] text-slate-400 font-medium">
-                  Multi-Channel & Sheets Workspace
+                  Multi-Channel & Consignments Workspace
                 </span>
               </div>
             </div>
 
             {/* Quick mini-pills for key platforms */}
             <div className="hidden lg:flex items-center gap-1.5 pl-3 border-l border-slate-200">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
+                Swiggy
+              </span>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Blinkit
+              </span>
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                 Flipkart
               </span>
@@ -68,12 +74,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700 border border-pink-200">
                 Meesho
               </span>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
-                Swiggy
-              </span>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Blinkit
-              </span>
             </div>
           </div>
 
@@ -81,50 +81,74 @@ export const Navbar: React.FC<NavbarProps> = ({
           <nav className="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                 activeTab === 'dashboard'
                   ? 'bg-white text-blue-600 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Orders & Trends</span>
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>Dashboard</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('orders')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'orders'
+                  ? 'bg-white text-blue-600 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+              <span>Orders</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'analytics'
+                  ? 'bg-white text-blue-600 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>Analytics</span>
             </button>
 
             <button
               onClick={() => setActiveTab('portals')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                 activeTab === 'portals'
                   ? 'bg-white text-blue-600 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Store className="w-4 h-4" />
-              <span>Seller Portals</span>
+              <Store className="w-3.5 h-3.5" />
+              <span>Portals</span>
             </button>
 
             <button
               onClick={() => setActiveTab('sheets')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                 activeTab === 'sheets'
                   ? 'bg-white text-emerald-600 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Sheets & Docs</span>
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>Sheets</span>
             </button>
 
             <button
               onClick={() => setActiveTab('logs')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                 activeTab === 'logs'
                   ? 'bg-white text-purple-600 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <History className="w-4 h-4" />
-              <span>Sheet Audit Logs</span>
+              <History className="w-3.5 h-3.5" />
+              <span>Logs</span>
             </button>
           </nav>
 

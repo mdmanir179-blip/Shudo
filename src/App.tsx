@@ -7,6 +7,8 @@ import { ActiveTab } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
+import { OrdersView } from './components/OrdersView';
+import { AnalyticsView } from './components/AnalyticsView';
 import { PortalsView } from './components/PortalsView';
 import { GoogleWorkspaceView } from './components/GoogleWorkspaceView';
 import { SheetLogsView } from './components/SheetLogsView';
@@ -73,6 +75,8 @@ function MainWorkspace() {
   // Selection states for runners
   const [selectedPortal, setSelectedPortal] = useState<PortalLink | null>(null);
   const [selectedDoc, setSelectedDoc] = useState<DocSheetItem | null>(null);
+  const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
+  const [selectedOrderIdForView, setSelectedOrderIdForView] = useState<string | null>(null);
 
   // Modals
   const [isAddPortalModalOpen, setIsAddPortalModalOpen] = useState(false);
@@ -168,15 +172,29 @@ function MainWorkspace() {
       collection(db, 'orders'),
       async (snapshot) => {
         if (snapshot.empty) {
-          const today = new Date();
+          const now = Date.now();
+          const today = new Date(now);
           const todayStr = today.toISOString().split('T')[0];
 
-          const tomorrow = new Date();
-          tomorrow.setDate(tomorrow.getDate() + 1);
+          const yesterday = new Date(now - 86400000);
+          const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+          const twoDaysAgo = new Date(now - 2 * 86400000);
+          const twoDaysAgoStr = twoDaysAgo.toISOString().split('T')[0];
+
+          const threeDaysAgo = new Date(now - 3 * 86400000);
+          const threeDaysAgoStr = threeDaysAgo.toISOString().split('T')[0];
+
+          const fourDaysAgo = new Date(now - 4 * 86400000);
+          const fourDaysAgoStr = fourDaysAgo.toISOString().split('T')[0];
+
+          const fiveDaysAgo = new Date(now - 5 * 86400000);
+          const fiveDaysAgoStr = fiveDaysAgo.toISOString().split('T')[0];
+
+          const tomorrow = new Date(now + 86400000);
           const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-          const dayAfter = new Date();
-          dayAfter.setDate(dayAfter.getDate() + 2);
+          const dayAfter = new Date(now + 2 * 86400000);
           const dayAfterStr = dayAfter.toISOString().split('T')[0];
 
           const sampleConsignments = [
@@ -225,14 +243,14 @@ function MainWorkspace() {
               boxesCount: 9,
               itemsCount: 310,
               status: 'in_transit',
-              date: todayStr,
-              shippingDate: todayStr,
-              appointmentDate: tomorrowStr,
+              date: yesterdayStr,
+              shippingDate: yesterdayStr,
+              appointmentDate: todayStr,
               appointmentTime: '09:30 AM - 11:30 AM',
               carrier: 'Shadowfax Quick Delivery',
               notes: 'Packaged in standardized quick-commerce cartons.',
               ownerId: 'workspace_user',
-              createdAt: new Date().toISOString()
+              createdAt: new Date(now - 86400000).toISOString()
             },
             {
               portalName: 'Flipkart',
@@ -243,14 +261,14 @@ function MainWorkspace() {
               boxesCount: 24,
               itemsCount: 780,
               status: 'open',
-              date: todayStr,
+              date: twoDaysAgoStr,
               shippingDate: todayStr,
               appointmentDate: dayAfterStr,
               appointmentTime: '11:00 AM - 02:00 PM',
               carrier: 'Ekart Logistics',
               notes: 'B2B Consignment Invoice & E-Way Bill Attached.',
               ownerId: 'workspace_user',
-              createdAt: new Date().toISOString()
+              createdAt: new Date(now - 2 * 86400000).toISOString()
             },
             {
               portalName: 'Amazon',
@@ -261,20 +279,69 @@ function MainWorkspace() {
               boxesCount: 32,
               itemsCount: 1100,
               status: 'delivered',
-              date: todayStr,
-              shippingDate: todayStr,
-              appointmentDate: todayStr,
+              date: threeDaysAgoStr,
+              shippingDate: threeDaysAgoStr,
+              appointmentDate: threeDaysAgoStr,
               appointmentTime: '10:00 AM',
               carrier: 'ATS Logistics',
               notes: 'Gate-in complete, GRN verified and accepted.',
-              deliveredAt: new Date().toISOString(),
+              deliveredAt: new Date(now - 3 * 86400000).toISOString(),
               ownerId: 'workspace_user',
-              createdAt: new Date().toISOString()
+              createdAt: new Date(now - 3 * 86400000).toISOString()
+            },
+            {
+              portalName: 'Meesho',
+              orderNumber: 'PO-MSH-3390',
+              poNumber: 'PO-MSH-3390',
+              destinationHub: 'Meesho Surat Logistics Hub',
+              amount: 34000,
+              boxesCount: 11,
+              itemsCount: 290,
+              status: 'delivered',
+              date: fourDaysAgoStr,
+              shippingDate: fourDaysAgoStr,
+              appointmentDate: fourDaysAgoStr,
+              carrier: 'Delhivery Surface',
+              notes: 'Ethnic apparel and fashion assortment delivered.',
+              deliveredAt: new Date(now - 4 * 86400000).toISOString(),
+              ownerId: 'workspace_user',
+              createdAt: new Date(now - 4 * 86400000).toISOString()
+            },
+            {
+              portalName: 'Swiggy',
+              orderNumber: 'PO-SWG-7612',
+              poNumber: 'PO-SWG-7612',
+              destinationHub: 'Swiggy Instamart Hub - Bellandur',
+              amount: 51200,
+              boxesCount: 16,
+              itemsCount: 480,
+              status: 'delivered',
+              date: fiveDaysAgoStr,
+              shippingDate: fiveDaysAgoStr,
+              appointmentDate: fiveDaysAgoStr,
+              carrier: 'BlueDart Surface Express',
+              notes: 'Snacks & beverages inventory batch received.',
+              deliveredAt: new Date(now - 5 * 86400000).toISOString(),
+              ownerId: 'workspace_user',
+              createdAt: new Date(now - 5 * 86400000).toISOString()
             }
           ];
 
+          // Set state immediately so user sees live data instantly
+          setOrders(
+            sampleConsignments.map((c, idx) => ({
+              id: `seed-po-${idx}`,
+              ...c
+            })) as OrderRecord[]
+          );
+
+          // Asynchronously persist to Firestore
           for (const c of sampleConsignments) {
-            await addDoc(collection(db, 'orders'), c);
+            try {
+              await addDoc(collection(db, 'orders'), c);
+            } catch (err) {
+              console.warn('Notice: Firestore seeding PO write:', err);
+            }
           }
           return;
         }
@@ -286,7 +353,7 @@ function MainWorkspace() {
         setOrders(items);
       },
       (error) => {
-        handleFirestoreError(error, OperationType.LIST, 'orders');
+        console.warn('Orders snapshot notice:', error);
       }
     );
 
@@ -309,6 +376,27 @@ function MainWorkspace() {
     setActiveTab('portals');
   };
 
+  // Header Search Callbacks
+  const handleSelectOrderFromHeader = (order: OrderRecord) => {
+    setActiveTab('orders');
+    setSelectedOrderIdForView(order.id);
+    setOrdersSearchQuery(order.poNumber || order.orderNumber || '');
+  };
+
+  const handleSelectPortalFromHeader = (portal: PortalLink) => {
+    handleSelectPortalAndOpen(portal);
+  };
+
+  const handleSelectDocFromHeader = (doc: DocSheetItem) => {
+    setActiveTab('sheets');
+    setSelectedDoc(doc);
+  };
+
+  const handleViewAllOrdersFromHeader = (query: string) => {
+    setActiveTab('orders');
+    setOrdersSearchQuery(query);
+  };
+
   return (
     <div className="h-screen w-screen overflow-hidden flex bg-white text-slate-900 font-sans">
       {/* LEFT SIDEBAR NAVIGATION MENU */}
@@ -323,20 +411,27 @@ function MainWorkspace() {
         onToggleFullscreen={toggleFullscreen}
         isOpen={isSidebarOpen}
         onToggleOpen={() => setIsSidebarOpen(!isSidebarOpen)}
+        openOrdersCount={orders.filter((o) => o.status === 'open' || o.status === 'pending').length}
       />
 
       {/* RIGHT MAIN VIEWPORT */}
       <div className="flex-1 flex flex-col h-full min-w-0 bg-slate-50/50 overflow-hidden">
-        {/* HEADER (MENU TOGGLE + BREADCRUMB & QUICK ACTIONS) */}
+        {/* HEADER (MENU TOGGLE + BREADCRUMB, SEARCH & QUICK ACTIONS) */}
         <Header
           isSidebarOpen={isSidebarOpen}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           activeTab={activeTab}
           orders={orders}
+          portals={portals}
+          documents={documents}
           onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
+          onSelectOrder={handleSelectOrderFromHeader}
+          onSelectPortal={handleSelectPortalFromHeader}
+          onSelectDoc={handleSelectDocFromHeader}
+          onViewAllOrders={handleViewAllOrdersFromHeader}
         />
 
-        {/* MAIN SCROLLABLE CONTENT AREA (Direct Access, No Login Barrier) */}
+        {/* MAIN SCROLLABLE CONTENT AREA */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {activeTab === 'dashboard' && (
             <DashboardView
@@ -345,6 +440,28 @@ function MainWorkspace() {
               onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
               onOpenAddPortal={() => setIsAddPortalModalOpen(true)}
               onSelectPortal={handleSelectPortalAndOpen}
+              onNavigateTab={setActiveTab}
+            />
+          )}
+
+          {activeTab === 'orders' && (
+            <OrdersView
+              orders={orders}
+              portals={portals}
+              onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
+              onSelectPortal={handleSelectPortalAndOpen}
+              initialSearchQuery={ordersSearchQuery}
+              selectedOrderId={selectedOrderIdForView}
+              onClearSelectedOrderId={() => setSelectedOrderIdForView(null)}
+            />
+          )}
+
+          {activeTab === 'analytics' && (
+            <AnalyticsView
+              orders={orders}
+              portals={portals}
+              onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
+              onNavigateToOrders={() => setActiveTab('orders')}
             />
           )}
 

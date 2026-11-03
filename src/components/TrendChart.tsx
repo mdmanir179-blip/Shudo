@@ -35,7 +35,11 @@ export const TrendChart: React.FC<TrendChartProps> = ({ orders, daysRange, onRan
   // Aggregate orders by date and portal
   const chartData = useMemo(() => {
     return dateSeries.map((dateStr) => {
-      const dayOrders = orders.filter((o) => o.date === dateStr);
+      const dayOrders = orders.filter((o) => {
+        const rawDate = o.date || o.shippingDate || o.createdAt || '';
+        const cleanDate = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate;
+        return cleanDate === dateStr;
+      });
       const totalCount = dayOrders.length;
       const totalRevenue = dayOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
 
