@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase/config';
 import { collection, addDoc } from 'firebase/firestore';
 import { PortalPlatform } from '../types';
@@ -54,7 +53,6 @@ const PRESET_TEMPLATES: Record<
 };
 
 export const AddPortalModal: React.FC<AddPortalModalProps> = ({ isOpen, onClose, onAdded }) => {
-  const { currentUser } = useAuth();
   const [platform, setPlatform] = useState<PortalPlatform>('custom');
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
@@ -87,7 +85,7 @@ export const AddPortalModal: React.FC<AddPortalModalProps> = ({ isOpen, onClose,
         url: url.trim(),
         color,
         notes: notes.trim(),
-        ownerId: currentUser?.uid || 'workspace_user',
+        ownerId: 'workspace_user',
         createdAt: new Date().toISOString()
       });
 

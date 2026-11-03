@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase/config';
 import { collection, addDoc } from 'firebase/firestore';
 import { OrderStatus, PortalLink } from '../types';
@@ -18,7 +17,6 @@ export const QuickOrderModal: React.FC<QuickOrderModalProps> = ({
   portals,
   onOrderAdded
 }) => {
-  const { currentUser } = useAuth();
   const [portalName, setPortalName] = useState('Flipkart');
   const [orderNumber, setOrderNumber] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -53,7 +51,7 @@ export const QuickOrderModal: React.FC<QuickOrderModalProps> = ({
         status,
         date,
         notes: notes.trim(),
-        ownerId: currentUser?.uid || 'workspace_user',
+        ownerId: 'workspace_user',
         createdAt: new Date().toISOString()
       });
 

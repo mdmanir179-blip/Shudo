@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AuthProvider } from './context/AuthContext';
 import { db, handleFirestoreError, OperationType } from './firebase/config';
 import { collection, onSnapshot, getDocs, addDoc } from 'firebase/firestore';
 import { PortalLink, DocSheetItem, SheetUpdateLog, OrderRecord } from './types';
@@ -58,7 +59,7 @@ const DEFAULT_PORTALS = [
   }
 ];
 
-export default function App() {
+function MainWorkspace() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -302,5 +303,13 @@ export default function App() {
         }}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainWorkspace />
+    </AuthProvider>
   );
 }

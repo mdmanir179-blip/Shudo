@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase/config';
 import { collection, addDoc } from 'firebase/firestore';
 import { DocType } from '../types';
@@ -13,7 +12,6 @@ interface AddDocModalProps {
 }
 
 export const AddDocModal: React.FC<AddDocModalProps> = ({ isOpen, onClose, onAdded }) => {
-  const { currentUser } = useAuth();
   const [docType, setDocType] = useState<DocType>('sheet');
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
@@ -31,8 +29,8 @@ export const AddDocModal: React.FC<AddDocModalProps> = ({ isOpen, onClose, onAdd
       const { embedUrl, detectedType } = convertToEmbedUrl(url, docType);
       const effectiveType = detectedType || docType;
 
-      const userName = currentUser?.displayName || localStorage.getItem('seller_user_name') || 'Seller Admin';
-      const userEmail = currentUser?.email || localStorage.getItem('seller_user_email') || 'seller@workspace.local';
+      const userName = localStorage.getItem('seller_user_name') || 'Seller Admin';
+      const userEmail = localStorage.getItem('seller_user_email') || 'seller@workspace.local';
 
       const docRef = await addDoc(collection(db, 'documents'), {
         title: title.trim(),
@@ -40,7 +38,7 @@ export const AddDocModal: React.FC<AddDocModalProps> = ({ isOpen, onClose, onAdd
         url: url.trim(),
         embedUrl,
         description: description.trim(),
-        ownerId: currentUser?.uid || 'workspace_user',
+        ownerId: 'workspace_user',
         lastUpdatedBy: userName,
         lastUpdatedEmail: userEmail,
         lastUpdatedAt: new Date().toISOString(),
@@ -53,13 +51,13 @@ export const AddDocModal: React.FC<AddDocModalProps> = ({ isOpen, onClose, onAdd
         sheetTitle: title.trim(),
         userName: userName,
         userEmail: userEmail,
-        userId: currentUser?.uid || 'workspace_user',
+        userId: 'workspace_user',
         changeSummary: `Document linked to workspace: "${title.trim()}". Ready for live in-software editing.`,
         actionType: 'general_edit',
         affectedRange: 'Initial Link',
         timestamp: new Date().toISOString(),
         createdAt: new Date().toISOString(),
-        ownerId: currentUser?.uid || 'workspace_user'
+        ownerId: 'workspace_user'
       });
 
       onAdded?.();

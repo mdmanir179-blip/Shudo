@@ -223,10 +223,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+const defaultAuthContext: AuthContextType = {
+  currentUser: null,
+  loading: false,
+  signInWithGoogle: async () => {},
+  signInWithEmail: async () => {},
+  signUpWithEmail: async () => {},
+  logout: async () => {},
+  clearAllDemoData: async () => {},
+  authError: null,
+  clearError: () => {}
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return context || defaultAuthContext;
 };
