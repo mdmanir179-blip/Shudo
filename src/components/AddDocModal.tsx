@@ -24,15 +24,15 @@ export const AddDocModal: React.FC<AddDocModalProps> = ({ isOpen, onClose, onAdd
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser || !title.trim() || !url.trim()) return;
+    if (!title.trim() || !url.trim()) return;
 
     setLoading(true);
     try {
       const { embedUrl, detectedType } = convertToEmbedUrl(url, docType);
       const effectiveType = detectedType || docType;
 
-      const userName = currentUser.displayName || currentUser.email?.split('@')[0] || 'Seller Admin';
-      const userEmail = currentUser.email || '';
+      const userName = currentUser?.displayName || localStorage.getItem('seller_user_name') || 'Seller Admin';
+      const userEmail = currentUser?.email || localStorage.getItem('seller_user_email') || 'seller@workspace.local';
 
       const docRef = await addDoc(collection(db, 'documents'), {
         title: title.trim(),
@@ -40,7 +40,7 @@ export const AddDocModal: React.FC<AddDocModalProps> = ({ isOpen, onClose, onAdd
         url: url.trim(),
         embedUrl,
         description: description.trim(),
-        ownerId: currentUser.uid,
+        ownerId: currentUser?.uid || 'workspace_user',
         lastUpdatedBy: userName,
         lastUpdatedEmail: userEmail,
         lastUpdatedAt: new Date().toISOString(),
@@ -53,13 +53,13 @@ export const AddDocModal: React.FC<AddDocModalProps> = ({ isOpen, onClose, onAdd
         sheetTitle: title.trim(),
         userName: userName,
         userEmail: userEmail,
-        userId: currentUser.uid,
+        userId: currentUser?.uid || 'workspace_user',
         changeSummary: `Document linked to workspace: "${title.trim()}". Ready for live in-software editing.`,
         actionType: 'general_edit',
         affectedRange: 'Initial Link',
         timestamp: new Date().toISOString(),
         createdAt: new Date().toISOString(),
-        ownerId: currentUser.uid
+        ownerId: currentUser?.uid || 'workspace_user'
       });
 
       onAdded?.();

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase/config';
 import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
 import { DocSheetItem } from '../types';
@@ -18,9 +17,11 @@ export const LogSheetUpdateModal: React.FC<LogSheetUpdateModalProps> = ({
   document,
   onLogged
 }) => {
-  const { currentUser } = useAuth();
   const [userName, setUserName] = useState(
-    () => currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Team Member'
+    () => localStorage.getItem('seller_user_name') || 'Seller Admin'
+  );
+  const [userEmail, setUserEmail] = useState(
+    () => localStorage.getItem('seller_user_email') || 'seller@workspace.com'
   );
   const [changeSummary, setChangeSummary] = useState('');
   const [affectedRange, setAffectedRange] = useState('');
@@ -44,34 +45,38 @@ export const LogSheetUpdateModal: React.FC<LogSheetUpdateModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser || !changeSummary.trim()) return;
+    if (!changeSummary.trim()) return;
 
     setSubmitting(true);
     try {
       const nowIso = new Date().toISOString();
-      const effectiveName = userName.trim() || currentUser.displayName || 'Seller User';
-      const userEmail = currentUser.email || 'user@example.com';
+      const effectiveName = userName.trim() || 'Team Member';
+      const effectiveEmail = userEmail.trim() || 'user@workspace.com';
+
+      // Save for convenience
+      localStorage.setItem('seller_user_name', effectiveName);
+      localStorage.setItem('seller_user_email', effectiveEmail);
 
       // 1. Write to sheet_logs
       await addDoc(collection(db, 'sheet_logs'), {
         documentId: document.id,
         sheetTitle: document.title,
         userName: effectiveName,
-        userEmail: userEmail,
-        userId: currentUser.uid,
+        userEmail: effectiveEmail,
+        userId: 'workspace_user',
         changeSummary: changeSummary.trim(),
         actionType,
         affectedRange: affectedRange.trim() || 'General Sheet',
         timestamp: nowIso,
         createdAt: nowIso,
-        ownerId: currentUser.uid
+        ownerId: 'workspace_user'
       });
 
       // 2. Update document metadata
       const docRef = doc(db, 'documents', document.id);
       await updateDoc(docRef, {
         lastUpdatedBy: effectiveName,
-        lastUpdatedEmail: userEmail,
+        lastUpdatedEmail: effectiveEmail,
         lastUpdatedAt: nowIso
       });
 
@@ -127,37 +132,42 @@ export const LogSheetUpdateModal: React.FC<LogSheetUpdateModalProps> = ({
               <div className="font-semibold text-xs text-slate-900 truncate mt-0.5">{document.title}</div>
             </div>
 
-            {/* Auto-detected Time & User badge */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-2.5 bg-blue-50/60 rounded-xl border border-blue-100 flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <div className="truncate">
-                  <div className="text-[10px] text-blue-600 font-medium">Record Timestamp</div>
-                  <div className="font-semibold text-slate-800 text-[11px] truncate">{currentFormattedTime}</div>
-                </div>
-              </div>
-
-              <div className="p-2.5 bg-emerald-50/60 rounded-xl border border-emerald-100 flex items-center gap-2">
-                <UserCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <div className="truncate">
-                  <div className="text-[10px] text-emerald-600 font-medium">Verified Identity</div>
-                  <div className="font-semibold text-slate-800 text-[11px] truncate">{currentUser?.email}</div>
-                </div>
+            {/* Auto-detected Time badge */}
+            <div className="p-2.5 bg-blue-50/60 rounded-xl border border-blue-100 flex items-center gap-2 text-xs">
+              <Clock className="w-4 h-4 text-blue-600 shrink-0" />
+              <div className="truncate">
+                <div className="text-[10px] text-blue-600 font-medium">Automatic Record Timestamp</div>
+                <div className="font-semibold text-slate-800 text-[11px] truncate">{currentFormattedTime}</div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Updater / Member Name *
-              </label>
-              <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                placeholder="Your full name"
-                className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800"
-                required
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Your Full Name *
+                </label>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="e.g. Manishankar Mandal"
+                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 font-medium"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  placeholder="seller@example.com"
+                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

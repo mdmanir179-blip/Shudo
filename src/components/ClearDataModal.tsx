@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { db, handleFirestoreError, OperationType } from '../firebase/config';
-import { collection, query, where, getDocs, deleteDoc, doc, writeBatch } from 'firebase/firestore';
-import { X, Trash2, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { db } from '../firebase/config';
+import { collection, getDocs, deleteDoc, doc, addDoc } from 'firebase/firestore';
+import { X, Trash2, AlertTriangle, CheckCircle2, Loader2, RotateCcw } from 'lucide-react';
 
 interface ClearDataModalProps {
   isOpen: boolean;
@@ -10,12 +9,54 @@ interface ClearDataModalProps {
   onDataCleared?: () => void;
 }
 
+const DEFAULT_PORTALS = [
+  {
+    name: 'Flipkart',
+    platform: 'flipkart',
+    url: 'https://seller.flipkart.com',
+    category: 'ecommerce',
+    color: '#2874F0',
+    notes: 'Official Flipkart Seller Hub for orders and dispatches.'
+  },
+  {
+    name: 'Amazon',
+    platform: 'amazon',
+    url: 'https://sellercentral.amazon.in',
+    category: 'ecommerce',
+    color: '#FF9900',
+    notes: 'Amazon Seller Central dashboard and orders.'
+  },
+  {
+    name: 'Meesho',
+    platform: 'meesho',
+    url: 'https://supplier.meesho.com',
+    category: 'social_commerce',
+    color: '#8B1E5D',
+    notes: 'Meesho Supplier Panel order processing.'
+  },
+  {
+    name: 'Swiggy',
+    platform: 'swiggy',
+    url: 'https://partner.swiggy.com',
+    category: 'quick_commerce',
+    color: '#FC8019',
+    notes: 'Swiggy Partner live order management.'
+  },
+  {
+    name: 'Blinkit',
+    platform: 'blinkit',
+    url: 'https://partner.blinkit.com',
+    category: 'quick_commerce',
+    color: '#0C831F',
+    notes: 'Blinkit Partner quick fulfillment dashboard.'
+  }
+];
+
 export const ClearDataModal: React.FC<ClearDataModalProps> = ({ isOpen, onClose, onDataCleared }) => {
-  const { currentUser } = useAuth();
   const [clearOrders, setClearOrders] = useState(true);
   const [clearLogs, setClearLogs] = useState(true);
   const [clearDocs, setClearDocs] = useState(true);
-  const [resetPortals, setResetPortals] = useState(false);
+  const [restoreDefaultPortals, setRestoreDefaultPortals] = useState(true);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -23,62 +64,60 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({ isOpen, onClose,
   if (!isOpen) return null;
 
   const handleExecuteClear = async () => {
-    if (!currentUser) return;
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    const uid = currentUser.uid;
-
     try {
       let deletedCount = 0;
 
-      // 1. Clear Orders if checked
+      // 1. Clear All Orders
       if (clearOrders) {
-        const ordersQ = query(collection(db, 'orders'), where('ownerId', '==', uid));
-        const ordersSnap = await getDocs(ordersQ);
+        const ordersSnap = await getDocs(collection(db, 'orders'));
         for (const d of ordersSnap.docs) {
           await deleteDoc(doc(db, 'orders', d.id));
           deletedCount++;
         }
       }
 
-      // 2. Clear Sheet Logs if checked
+      // 2. Clear All Sheet Logs
       if (clearLogs) {
-        const logsQ = query(collection(db, 'sheet_logs'), where('ownerId', '==', uid));
-        const logsSnap = await getDocs(logsQ);
+        const logsSnap = await getDocs(collection(db, 'sheet_logs'));
         for (const d of logsSnap.docs) {
           await deleteDoc(doc(db, 'sheet_logs', d.id));
           deletedCount++;
         }
       }
 
-      // 3. Clear Google Docs/Sheets if checked
+      // 3. Clear All Documents
       if (clearDocs) {
-        const docsQ = query(collection(db, 'documents'), where('ownerId', '==', uid));
-        const docsSnap = await getDocs(docsQ);
+        const docsSnap = await getDocs(collection(db, 'documents'));
         for (const d of docsSnap.docs) {
           await deleteDoc(doc(db, 'documents', d.id));
           deletedCount++;
         }
       }
 
-      // 4. Reset Portals if checked
-      if (resetPortals) {
-        const portalsQ = query(collection(db, 'portals'), where('ownerId', '==', uid));
-        const portalsSnap = await getDocs(portalsQ);
-        for (const d of portalsSnap.docs) {
-          await deleteDoc(doc(db, 'portals', d.id));
-          deletedCount++;
+      // 4. Restore Default 5 Portals if portals were empty
+      if (restoreDefaultPortals) {
+        const portalsSnap = await getDocs(collection(db, 'portals'));
+        if (portalsSnap.empty) {
+          for (const p of DEFAULT_PORTALS) {
+            await addDoc(collection(db, 'portals'), {
+              ...p,
+              ownerId: 'workspace_user',
+              createdAt: new Date().toISOString()
+            });
+          }
         }
       }
 
-      setSuccessMessage(`Successfully cleared ${deletedCount} records.`);
+      setSuccessMessage(`Cleared ${deletedCount} records successfully.`);
       setTimeout(() => {
         setSuccessMessage(null);
         onDataCleared?.();
         onClose();
-      }, 1000);
+      }, 900);
     } catch (err: any) {
       console.error('Failed to clear data:', err);
       setErrorMessage(err.message || 'Error occurred while clearing data.');
@@ -97,7 +136,7 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({ isOpen, onClose,
             </div>
             <div>
               <h3 className="font-bold text-slate-900 text-sm">Clear Workspace Data</h3>
-              <p className="text-xs text-slate-500">Remove demo orders, sheets, and logs</p>
+              <p className="text-xs text-slate-500">Wipe demo orders, sheets, and activity logs</p>
             </div>
           </div>
           <button
@@ -111,7 +150,7 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({ isOpen, onClose,
         {successMessage ? (
           <div className="p-10 flex flex-col items-center justify-center text-center">
             <CheckCircle2 className="w-12 h-12 text-emerald-500 animate-bounce mb-3" />
-            <h4 className="font-bold text-slate-900">Data Cleared Successfully!</h4>
+            <h4 className="font-bold text-slate-900">Workspace Cleared!</h4>
             <p className="text-xs text-slate-500 mt-1">{successMessage}</p>
           </div>
         ) : (
@@ -125,7 +164,7 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({ isOpen, onClose,
             <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200/80 flex items-start gap-2.5 text-xs text-amber-800">
               <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <strong>Warning:</strong> This permanently wipes the selected data from your database so you can start with a 100% clean dashboard.
+                <strong>Warning:</strong> This permanently wipes the selected data from Firestore so you have a 100% clean dashboard.
               </div>
             </div>
 
@@ -168,19 +207,6 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({ isOpen, onClose,
                   <div className="text-[11px] text-slate-400">Removes sample and saved sheet links</div>
                 </div>
               </label>
-
-              <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors">
-                <input
-                  type="checkbox"
-                  checked={resetPortals}
-                  onChange={(e) => setResetPortals(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <div className="flex-1">
-                  <div className="font-semibold text-slate-800">Remove Custom Portal Links</div>
-                  <div className="text-[11px] text-slate-400">Clears custom seller links (Optional)</div>
-                </div>
-              </label>
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
@@ -195,7 +221,7 @@ export const ClearDataModal: React.FC<ClearDataModalProps> = ({ isOpen, onClose,
               <button
                 type="button"
                 onClick={handleExecuteClear}
-                disabled={loading || (!clearOrders && !clearLogs && !clearDocs && !resetPortals)}
+                disabled={loading || (!clearOrders && !clearLogs && !clearDocs)}
                 className="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
               >
                 {loading ? (

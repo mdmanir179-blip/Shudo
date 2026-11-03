@@ -1,5 +1,4 @@
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
 import { ActiveTab } from './Navbar';
 import {
   LayoutDashboard,
@@ -7,13 +6,11 @@ import {
   FileSpreadsheet,
   History,
   Plus,
-  LogOut,
   Maximize2,
   Minimize2,
   Trash2,
-  User,
   PanelLeftClose,
-  PanelLeft
+  ShieldCheck
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -22,7 +19,6 @@ interface SidebarProps {
   onOpenAddPortal: () => void;
   onOpenAddDoc: () => void;
   onOpenAddOrder: () => void;
-  onOpenAuth: () => void;
   onOpenClearData: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
@@ -36,15 +32,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenAddPortal,
   onOpenAddDoc,
   onOpenAddOrder,
-  onOpenAuth,
   onOpenClearData,
   isFullscreen,
   onToggleFullscreen,
   isOpen,
   onToggleOpen
 }) => {
-  const { currentUser, logout } = useAuth();
-
   if (!isOpen) return null;
 
   return (
@@ -63,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           />
         </button>
 
-        {/* Hide menu button (as requested: "menu hide/show button add koro") */}
+        {/* Hide menu button */}
         <button
           onClick={onToggleOpen}
           title="Hide Sidebar Menu"
@@ -76,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Navigation Menu Links */}
       <div className="flex-1 px-3 py-3.5 space-y-1 overflow-y-auto">
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-2">
-          Navigation
+          Workspace Menu
         </div>
 
         <button
@@ -148,10 +141,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Plus className="w-3.5 h-3.5 text-emerald-600" />
             <span>Add Google Sheet</span>
           </button>
+
+          <button
+            onClick={onOpenAddPortal}
+            className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5 text-amber-600" />
+            <span>Add Portal Link</span>
+          </button>
         </div>
       </div>
 
-      {/* Bottom User Profile & Desktop App Controls */}
+      {/* Bottom Controls */}
       <div className="p-3 border-t border-slate-100 space-y-2 bg-slate-50/60">
         {/* Fullscreen Computer Mode Toggle */}
         <button
@@ -166,59 +167,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         {/* Clear Data Button (opens ClearDataModal) */}
-        {currentUser && (
-          <button
-            onClick={onOpenClearData}
-            title="Wipe demo orders and sample sheets"
-            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors text-left"
-          >
-            <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-            <span>Clear Workspace Data</span>
-          </button>
-        )}
+        <button
+          onClick={onOpenClearData}
+          title="Wipe demo orders and sample sheets"
+          className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors text-left"
+        >
+          <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+          <span>Clear Workspace Data</span>
+        </button>
 
-        {/* User Session Bar */}
-        {currentUser ? (
-          <div className="flex items-center justify-between pt-2 border-t border-slate-200/70">
-            <div className="flex items-center gap-2 min-w-0">
-              {currentUser.photoURL ? (
-                <img
-                  src={currentUser.photoURL}
-                  alt={currentUser.displayName || 'User'}
-                  className="w-7 h-7 rounded-full object-cover border border-slate-200"
-                />
-              ) : (
-                <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
-                  {(currentUser.displayName || currentUser.email || 'U')[0].toUpperCase()}
-                </div>
-              )}
-              <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-800 truncate">
-                  {currentUser.displayName || currentUser.email?.split('@')[0]}
-                </div>
-                <div className="text-[10px] text-slate-400 truncate">
-                  {currentUser.email}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={logout}
-              title="Sign Out"
-              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={onOpenAuth}
-            className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs"
-          >
-            <User className="w-3.5 h-3.5" />
-            <span>Sign In / Register</span>
-          </button>
-        )}
+        {/* Direct Workspace Status */}
+        <div className="pt-2 border-t border-slate-200/70 flex items-center justify-between text-[11px] text-slate-500">
+          <span className="flex items-center gap-1.5 font-semibold text-slate-700">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            Direct Mode Active
+          </span>
+          <span className="text-slate-400">v2.1</span>
+        </div>
       </div>
     </aside>
   );

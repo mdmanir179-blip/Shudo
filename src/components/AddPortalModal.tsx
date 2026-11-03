@@ -77,7 +77,7 @@ export const AddPortalModal: React.FC<AddPortalModalProps> = ({ isOpen, onClose,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser || !name.trim() || !url.trim()) return;
+    if (!name.trim() || !url.trim()) return;
 
     setLoading(true);
     try {
@@ -87,7 +87,7 @@ export const AddPortalModal: React.FC<AddPortalModalProps> = ({ isOpen, onClose,
         url: url.trim(),
         color,
         notes: notes.trim(),
-        ownerId: currentUser.uid,
+        ownerId: currentUser?.uid || 'workspace_user',
         createdAt: new Date().toISOString()
       });
 

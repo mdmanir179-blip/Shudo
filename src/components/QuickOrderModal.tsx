@@ -34,7 +34,6 @@ export const QuickOrderModal: React.FC<QuickOrderModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser) return;
     if (!portalName || !amount) return;
 
     setSubmitting(true);
@@ -54,7 +53,7 @@ export const QuickOrderModal: React.FC<QuickOrderModalProps> = ({
         status,
         date,
         notes: notes.trim(),
-        ownerId: currentUser.uid,
+        ownerId: currentUser?.uid || 'workspace_user',
         createdAt: new Date().toISOString()
       });
 

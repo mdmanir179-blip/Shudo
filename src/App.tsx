@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
 import { db, handleFirestoreError, OperationType } from './firebase/config';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, addDoc } from 'firebase/firestore';
 import { PortalLink, DocSheetItem, SheetUpdateLog, OrderRecord } from './types';
 import { ActiveTab } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
@@ -10,21 +9,61 @@ import { DashboardView } from './components/DashboardView';
 import { PortalsView } from './components/PortalsView';
 import { GoogleWorkspaceView } from './components/GoogleWorkspaceView';
 import { SheetLogsView } from './components/SheetLogsView';
-import { AuthModal } from './components/AuthModal';
 import { QuickOrderModal } from './components/QuickOrderModal';
 import { AddPortalModal } from './components/AddPortalModal';
 import { AddDocModal } from './components/AddDocModal';
 import { LogSheetUpdateModal } from './components/LogSheetUpdateModal';
 import { ClearDataModal } from './components/ClearDataModal';
-import { Loader2 } from 'lucide-react';
 
-function AppContent() {
-  const { currentUser, loading: authLoading } = useAuth();
+const DEFAULT_PORTALS = [
+  {
+    name: 'Flipkart',
+    platform: 'flipkart',
+    url: 'https://seller.flipkart.com',
+    category: 'ecommerce',
+    color: '#2874F0',
+    notes: 'Official Flipkart Seller Hub for orders and dispatches.'
+  },
+  {
+    name: 'Amazon',
+    platform: 'amazon',
+    url: 'https://sellercentral.amazon.in',
+    category: 'ecommerce',
+    color: '#FF9900',
+    notes: 'Amazon Seller Central dashboard and orders.'
+  },
+  {
+    name: 'Meesho',
+    platform: 'meesho',
+    url: 'https://supplier.meesho.com',
+    category: 'social_commerce',
+    color: '#8B1E5D',
+    notes: 'Meesho Supplier Panel order processing.'
+  },
+  {
+    name: 'Swiggy',
+    platform: 'swiggy',
+    url: 'https://partner.swiggy.com',
+    category: 'quick_commerce',
+    color: '#FC8019',
+    notes: 'Swiggy Partner live order management.'
+  },
+  {
+    name: 'Blinkit',
+    platform: 'blinkit',
+    url: 'https://partner.blinkit.com',
+    category: 'quick_commerce',
+    color: '#0C831F',
+    notes: 'Blinkit Partner quick fulfillment dashboard.'
+  }
+];
+
+export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Firestore synced data
+  // Direct Firestore synced data (no login barrier)
   const [portals, setPortals] = useState<PortalLink[]>([]);
   const [documents, setDocuments] = useState<DocSheetItem[]>([]);
   const [sheetLogs, setSheetLogs] = useState<SheetUpdateLog[]>([]);
@@ -35,7 +74,6 @@ function AppContent() {
   const [selectedDoc, setSelectedDoc] = useState<DocSheetItem | null>(null);
 
   // Modals
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAddPortalModalOpen, setIsAddPortalModalOpen] = useState(false);
   const [isAddDocModalOpen, setIsAddDocModalOpen] = useState(false);
   const [isAddOrderModalOpen, setIsAddOrderModalOpen] = useState(false);
@@ -62,25 +100,24 @@ function AppContent() {
     }
   };
 
-  // Firestore subscriptions attached when user is authenticated
+  // Direct Firestore live listeners (immediately active on start)
   useEffect(() => {
-    if (!currentUser) {
-      setPortals([]);
-      setDocuments([]);
-      setSheetLogs([]);
-      setOrders([]);
-      setSelectedPortal(null);
-      setSelectedDoc(null);
-      return;
-    }
-
-    const userId = currentUser.uid;
-
-    // 1. Portals subscription
-    const portalsQuery = query(collection(db, 'portals'), where('ownerId', '==', userId));
+    // 1. Portals listener & automatic bootstrap if empty
     const unsubPortals = onSnapshot(
-      portalsQuery,
-      (snapshot) => {
+      collection(db, 'portals'),
+      async (snapshot) => {
+        if (snapshot.empty) {
+          // Initialize the 5 default portals if none exist
+          for (const p of DEFAULT_PORTALS) {
+            await addDoc(collection(db, 'portals'), {
+              ...p,
+              ownerId: 'workspace_user',
+              createdAt: new Date().toISOString()
+            });
+          }
+          return;
+        }
+
         const items = snapshot.docs.map((docSnap) => ({
           id: docSnap.id,
           ...docSnap.data()
@@ -92,10 +129,9 @@ function AppContent() {
       }
     );
 
-    // 2. Google Docs & Sheets subscription
-    const docsQuery = query(collection(db, 'documents'), where('ownerId', '==', userId));
+    // 2. Google Docs & Sheets listener
     const unsubDocs = onSnapshot(
-      docsQuery,
+      collection(db, 'documents'),
       (snapshot) => {
         const items = snapshot.docs.map((docSnap) => ({
           id: docSnap.id,
@@ -111,10 +147,9 @@ function AppContent() {
       }
     );
 
-    // 3. Sheet audit logs subscription
-    const logsQuery = query(collection(db, 'sheet_logs'), where('ownerId', '==', userId));
+    // 3. Sheet audit logs listener
     const unsubLogs = onSnapshot(
-      logsQuery,
+      collection(db, 'sheet_logs'),
       (snapshot) => {
         const items = snapshot.docs.map((docSnap) => ({
           id: docSnap.id,
@@ -127,10 +162,9 @@ function AppContent() {
       }
     );
 
-    // 4. Orders subscription
-    const ordersQuery = query(collection(db, 'orders'), where('ownerId', '==', userId));
+    // 4. Orders listener
     const unsubOrders = onSnapshot(
-      ordersQuery,
+      collection(db, 'orders'),
       (snapshot) => {
         const items = snapshot.docs.map((docSnap) => ({
           id: docSnap.id,
@@ -149,54 +183,28 @@ function AppContent() {
       unsubLogs();
       unsubOrders();
     };
-  }, [currentUser]);
+  }, []);
 
   const handleOpenLogUpdate = (docItem: DocSheetItem) => {
     setLogTargetDoc(docItem);
     setIsLogUpdateModalOpen(true);
   };
 
-  // Launch Portal in Full Screen (as requested: "jokhon kono portal click korbo setike full screen a sho koro")
+  // Launch Portal in Full Screen on click
   const handleSelectPortalAndOpen = (portal: PortalLink) => {
     setSelectedPortal(portal);
     setActiveTab('portals');
   };
 
-  if (authLoading) {
-    return (
-      <div className="h-screen w-screen bg-white flex flex-col items-center justify-center p-4 select-none">
-        <img
-          src="/logo.svg"
-          alt="Logo"
-          className="w-14 h-14 object-contain mb-4 animate-pulse"
-        />
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-          <span>Starting Desktop Workspace...</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="h-screen w-screen overflow-hidden flex bg-white text-slate-900 font-sans">
-      {/* LEFT SIDEBAR NAVIGATION MENU (with menu hide/show toggle) */}
+      {/* LEFT SIDEBAR NAVIGATION MENU */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenAddPortal={() => {
-          if (!currentUser) setIsAuthModalOpen(true);
-          else setIsAddPortalModalOpen(true);
-        }}
-        onOpenAddDoc={() => {
-          if (!currentUser) setIsAuthModalOpen(true);
-          else setIsAddDocModalOpen(true);
-        }}
-        onOpenAddOrder={() => {
-          if (!currentUser) setIsAuthModalOpen(true);
-          else setIsAddOrderModalOpen(true);
-        }}
-        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenAddPortal={() => setIsAddPortalModalOpen(true)}
+        onOpenAddDoc={() => setIsAddDocModalOpen(true)}
+        onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
         onOpenClearData={() => setIsClearDataModalOpen(true)}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
@@ -211,85 +219,55 @@ function AppContent() {
           portals={portals}
           selectedPortal={selectedPortal}
           onSelectPortal={handleSelectPortalAndOpen}
-          onOpenAddPortal={() => {
-            if (!currentUser) setIsAuthModalOpen(true);
-            else setIsAddPortalModalOpen(true);
-          }}
+          onOpenAddPortal={() => setIsAddPortalModalOpen(true)}
           orders={orders}
           isSidebarOpen={isSidebarOpen}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
 
-        {/* MAIN SCROLLABLE CONTENT AREA */}
+        {/* MAIN SCROLLABLE CONTENT AREA (Direct Access, No Login Barrier) */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-          {!currentUser ? (
-            // Clean login gate
-            <div className="max-w-md mx-auto my-16 bg-white rounded-3xl border border-slate-200/80 p-8 text-center shadow-lg shadow-slate-200/40">
-              <img
-                src="/logo.svg"
-                alt="Logo"
-                className="w-16 h-16 object-contain mx-auto mb-4 drop-shadow-sm"
-              />
-              <p className="text-xs text-slate-500 mb-6">
-                Sign in to manage seller portals, embedded sheets, and live orders.
-              </p>
-              <button
-                onClick={() => setIsAuthModalOpen(true)}
-                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-md shadow-blue-500/20 transition-all"
-              >
-                Sign In / Register
-              </button>
-            </div>
-          ) : (
-            <div>
-              {activeTab === 'dashboard' && (
-                <DashboardView
-                  orders={orders}
-                  portals={portals}
-                  onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
-                  onOpenAddPortal={() => setIsAddPortalModalOpen(true)}
-                  onSelectPortal={handleSelectPortalAndOpen}
-                />
-              )}
+          {activeTab === 'dashboard' && (
+            <DashboardView
+              orders={orders}
+              portals={portals}
+              onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
+              onOpenAddPortal={() => setIsAddPortalModalOpen(true)}
+              onSelectPortal={handleSelectPortalAndOpen}
+            />
+          )}
 
-              {activeTab === 'portals' && (
-                <PortalsView
-                  portals={portals}
-                  selectedPortal={selectedPortal}
-                  onSelectPortal={setSelectedPortal}
-                  onOpenAddPortal={() => setIsAddPortalModalOpen(true)}
-                  onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
-                />
-              )}
+          {activeTab === 'portals' && (
+            <PortalsView
+              portals={portals}
+              selectedPortal={selectedPortal}
+              onSelectPortal={setSelectedPortal}
+              onOpenAddPortal={() => setIsAddPortalModalOpen(true)}
+              onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
+            />
+          )}
 
-              {activeTab === 'sheets' && (
-                <GoogleWorkspaceView
-                  documents={documents}
-                  selectedDoc={selectedDoc}
-                  onSelectDoc={setSelectedDoc}
-                  onOpenAddDoc={() => setIsAddDocModalOpen(true)}
-                  onOpenLogUpdate={handleOpenLogUpdate}
-                />
-              )}
+          {activeTab === 'sheets' && (
+            <GoogleWorkspaceView
+              documents={documents}
+              selectedDoc={selectedDoc}
+              onSelectDoc={setSelectedDoc}
+              onOpenAddDoc={() => setIsAddDocModalOpen(true)}
+              onOpenLogUpdate={handleOpenLogUpdate}
+            />
+          )}
 
-              {activeTab === 'logs' && (
-                <SheetLogsView
-                  logs={sheetLogs}
-                  documents={documents}
-                  onOpenLogUpdate={handleOpenLogUpdate}
-                />
-              )}
-            </div>
+          {activeTab === 'logs' && (
+            <SheetLogsView
+              logs={sheetLogs}
+              documents={documents}
+              onOpenLogUpdate={handleOpenLogUpdate}
+            />
           )}
         </main>
       </div>
 
       {/* Modals */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-      />
-
       <QuickOrderModal
         isOpen={isAddOrderModalOpen}
         onClose={() => setIsAddOrderModalOpen(false)}
@@ -324,13 +302,5 @@ function AppContent() {
         }}
       />
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
   );
 }
