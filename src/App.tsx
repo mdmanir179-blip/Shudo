@@ -215,15 +215,12 @@ function MainWorkspace() {
 
       {/* RIGHT MAIN VIEWPORT */}
       <div className="flex-1 flex flex-col h-full min-w-0 bg-slate-50/50 overflow-hidden">
-        {/* HEADER (MENU TOGGLE + EXCLUSIVELY PORTALS) */}
+        {/* HEADER (MENU TOGGLE + BREADCRUMB & QUICK ACTIONS) */}
         <Header
-          portals={portals}
-          selectedPortal={selectedPortal}
-          onSelectPortal={handleSelectPortalAndOpen}
-          onOpenAddPortal={() => setIsAddPortalModalOpen(true)}
-          orders={orders}
           isSidebarOpen={isSidebarOpen}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          activeTab={activeTab}
+          onOpenAddOrder={() => setIsAddOrderModalOpen(true)}
         />
 
         {/* MAIN SCROLLABLE CONTENT AREA (Direct Access, No Login Barrier) */}
