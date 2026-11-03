@@ -1,5 +1,6 @@
 import React from 'react';
 import { PortalLink, OrderRecord } from '../types';
+import { PortalLogo } from '../utils/portalLogos';
 import { Plus, Menu, ExternalLink } from 'lucide-react';
 
 interface HeaderProps {
@@ -82,13 +83,10 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Click to open in full screen workspace */}
               <button
                 onClick={() => onSelectPortal(p)}
-                className="flex items-center gap-2 px-3 py-1.5 truncate"
+                className="flex items-center gap-2 px-2.5 py-1 truncate"
                 title={`Open ${p.name} in Workspace`}
               >
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: color }}
-                />
+                <PortalLogo name={p.name} logoUrl={p.logoUrl} size="md" />
                 <span className="truncate">{p.name}</span>
 
                 {portalOrdersCount > 0 ? (

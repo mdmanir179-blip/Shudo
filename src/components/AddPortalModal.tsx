@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { db, handleFirestoreError, OperationType } from '../firebase/config';
 import { collection, addDoc } from 'firebase/firestore';
 import { PortalPlatform } from '../types';
-import { X, ExternalLink, Link2, Sparkles } from 'lucide-react';
+import { PortalLogo } from '../utils/portalLogos';
+import { X, ExternalLink, Link2, Sparkles, Image as ImageIcon } from 'lucide-react';
 
 interface AddPortalModalProps {
   isOpen: boolean;
@@ -12,37 +13,37 @@ interface AddPortalModalProps {
 
 const PRESET_TEMPLATES: Record<
   PortalPlatform,
-  { name: string; url: string; color: string; notes: string }
+  { name: string; url: string; color: string; notes: string; logoUrl?: string }
 > = {
   flipkart: {
-    name: 'Flipkart Seller Hub',
+    name: 'Flipkart',
     url: 'https://seller.flipkart.com',
     color: '#2874F0',
-    notes: 'Seller account for order packing, dispatch SLAs, and returns.'
+    notes: 'Official seller dashboard for orders, tier metrics, and dispatch manifests.'
   },
   amazon: {
-    name: 'Amazon Seller Central',
+    name: 'Amazon',
     url: 'https://sellercentral.amazon.in',
     color: '#FF9900',
-    notes: 'Manage merchant-fulfilled orders & FBA inventory.'
+    notes: 'Inventory management, FBA tracking, and Prime orders dashboard.'
   },
   meesho: {
-    name: 'Meesho Supplier Panel',
+    name: 'Meesho',
     url: 'https://supplier.meesho.com',
     color: '#8B1E5D',
-    notes: 'Orders processing, labels, and zero-commission payout tracking.'
+    notes: '0% commission marketplace catalog updates and shipping label generation.'
   },
   swiggy: {
-    name: 'Swiggy Partner Hub',
+    name: 'Swiggy',
     url: 'https://partner.swiggy.com',
     color: '#FC8019',
-    notes: 'Quick food & retail delivery partner order stream.'
+    notes: 'Live restaurant & retail order flow, prep status, and settlement records.'
   },
   blinkit: {
-    name: 'Blinkit Partner',
+    name: 'Blinkit',
     url: 'https://partner.blinkit.com',
     color: '#0C831F',
-    notes: 'Instant grocery store dispatch & dark store fulfillment.'
+    notes: 'Dark store inventory dispatch, instant 10-minute order fulfillments.'
   },
   custom: {
     name: '',
@@ -57,6 +58,7 @@ export const AddPortalModal: React.FC<AddPortalModalProps> = ({ isOpen, onClose,
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [color, setColor] = useState('#2874F0');
+  const [logoUrl, setLogoUrl] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -70,6 +72,7 @@ export const AddPortalModal: React.FC<AddPortalModalProps> = ({ isOpen, onClose,
       setUrl(preset.url);
       setColor(preset.color);
       setNotes(preset.notes);
+      setLogoUrl('');
     }
   };
 
@@ -89,6 +92,7 @@ export const AddPortalModal: React.FC<AddPortalModalProps> = ({ isOpen, onClose,
         platform,
         url: cleanUrl,
         color,
+        logoUrl: logoUrl.trim(),
         notes: notes.trim(),
         ownerId: 'workspace_user',
         createdAt: new Date().toISOString()
@@ -100,6 +104,7 @@ export const AddPortalModal: React.FC<AddPortalModalProps> = ({ isOpen, onClose,
       setName('');
       setUrl('');
       setNotes('');
+      setLogoUrl('');
       setPlatform('custom');
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'portals');
@@ -158,14 +163,34 @@ export const AddPortalModal: React.FC<AddPortalModalProps> = ({ isOpen, onClose,
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Portal Display Name *
             </label>
-            <input
-              type="text"
-              placeholder="e.g. Flipkart Seller Hub"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800"
-              required
-            />
+            <div className="flex items-center gap-2.5">
+              <PortalLogo name={name || 'Portal'} logoUrl={logoUrl} size="md" />
+              <input
+                type="text"
+                placeholder="e.g. Flipkart"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="flex-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+              <span>Portal Logo URL (Optional)</span>
+              <span className="text-[10px] text-slate-400 font-normal">Auto-detected if left empty</span>
+            </label>
+            <div className="relative">
+              <input
+                type="url"
+                placeholder="https://example.com/logo.png"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+                className="w-full pl-3 pr-8 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 font-mono text-[11px]"
+              />
+              <ImageIcon className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+            </div>
           </div>
 
           <div>

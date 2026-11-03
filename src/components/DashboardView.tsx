@@ -20,6 +20,7 @@ import {
   RotateCcw,
   Sparkles
 } from 'lucide-react';
+import { PortalLogo } from '../utils/portalLogos';
 
 interface DashboardViewProps {
   orders: OrderRecord[];
@@ -269,10 +270,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                 <div>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: theme.accent }}
+                    <div className="flex items-center gap-2.5">
+                      <PortalLogo
+                        name={item.name}
+                        logoUrl={item.matchedPortal?.logoUrl}
+                        size="md"
                       />
                       <h3 className="font-bold text-slate-900 text-sm">{item.name}</h3>
                     </div>
@@ -445,14 +447,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   return (
                     <tr key={order.id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="py-3 px-4 font-semibold text-slate-900">
-                        <span className="flex items-center gap-1.5">
-                          <span
-                            className="w-2 h-2 rounded-full"
-                            style={{
-                              backgroundColor: PORTAL_THEMES[order.portalName]?.accent || '#64748B'
-                            }}
+                        <span className="flex items-center gap-2">
+                          <PortalLogo
+                            name={order.portalName}
+                            size="sm"
                           />
-                          {order.portalName}
+                          <span>{order.portalName}</span>
                         </span>
                       </td>
 

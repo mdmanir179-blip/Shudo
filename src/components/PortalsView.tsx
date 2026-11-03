@@ -20,8 +20,11 @@ import {
   Sparkles,
   Zap,
   CheckCircle2,
-  Laptop
+  Laptop,
+  Edit2
 } from 'lucide-react';
+import { PortalLogo } from '../utils/portalLogos';
+import { EditPortalModal } from './EditPortalModal';
 
 interface PortalsViewProps {
   portals: PortalLink[];
@@ -42,6 +45,7 @@ export const PortalsView: React.FC<PortalsViewProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [useIframeMode, setUseIframeMode] = useState<boolean>(false);
   const [iframeKey, setIframeKey] = useState<number>(0);
+  const [editingPortal, setEditingPortal] = useState<PortalLink | null>(null);
 
   // Quick in-desk order logger states
   const [quickOrderId, setQuickOrderId] = useState('');
@@ -156,11 +160,8 @@ export const PortalsView: React.FC<PortalsViewProps> = ({
 
             <div className="h-5 w-px bg-slate-200 hidden sm:block" />
 
-            <div className="flex items-center gap-2 truncate">
-              <span
-                className="w-3 h-3 rounded-full shrink-0"
-                style={{ backgroundColor: selectedPortal.color || '#3B82F6' }}
-              />
+            <div className="flex items-center gap-2.5 truncate">
+              <PortalLogo name={selectedPortal.name} logoUrl={selectedPortal.logoUrl} size="md" />
               <span className="font-extrabold text-slate-900 text-sm truncate">
                 {selectedPortal.name}
               </span>
@@ -232,15 +233,12 @@ export const PortalsView: React.FC<PortalsViewProps> = ({
                   style={{ backgroundColor: selectedPortal.color || '#3B82F6' }}
                 />
 
-                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4 text-blue-600 shadow-xs border border-blue-100">
-                  <Laptop className="w-8 h-8" />
+                <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-4 shadow-xs border border-slate-200/80 p-2">
+                  <PortalLogo name={selectedPortal.name} logoUrl={selectedPortal.logoUrl} size="lg" className="w-12 h-12" />
                 </div>
 
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <span
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: selectedPortal.color || '#3B82F6' }}
-                  />
+                <div className="flex items-center justify-center gap-2.5 mb-1">
+                  <PortalLogo name={selectedPortal.name} logoUrl={selectedPortal.logoUrl} size="md" />
                   <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                     {selectedPortal.name}
                   </h2>
@@ -288,8 +286,8 @@ export const PortalsView: React.FC<PortalsViewProps> = ({
               {/* Side-by-side or below: Live Order Logging Console for this Portal */}
               <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-                  <div className="flex items-center gap-2">
-                    <ShoppingBag className="w-4 h-4 text-blue-600" />
+                  <div className="flex items-center gap-2.5">
+                    <PortalLogo name={selectedPortal.name} logoUrl={selectedPortal.logoUrl} size="sm" />
                     <h3 className="font-extrabold text-slate-900 text-sm">
                       Quick Order Entry for {selectedPortal.name}
                     </h3>
@@ -418,15 +416,20 @@ export const PortalsView: React.FC<PortalsViewProps> = ({
 
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-3 h-3 rounded-full shrink-0"
-                      style={{ backgroundColor: p.color || '#3B82F6' }}
-                    />
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <PortalLogo name={p.name} logoUrl={p.logoUrl} size="md" />
                     <span className="font-extrabold text-sm text-slate-900 truncate">{p.name}</span>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => setEditingPortal(p)}
+                      title="Edit Portal Logo & Details"
+                      className="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+
                     <button
                       onClick={() => handleCopy(p.id, cleanUrl)}
                       title="Copy URL"
@@ -488,6 +491,13 @@ export const PortalsView: React.FC<PortalsViewProps> = ({
           );
         })}
       </div>
+
+      {/* Edit Portal Modal */}
+      <EditPortalModal
+        portal={editingPortal}
+        isOpen={!!editingPortal}
+        onClose={() => setEditingPortal(null)}
+      />
     </div>
   );
 };

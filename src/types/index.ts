@@ -8,6 +8,7 @@ export interface PortalLink {
   notes?: string;
   category?: string;
   color?: string;
+  logoUrl?: string;
   ownerId: string;
   createdAt: string;
   updatedAt?: string;
