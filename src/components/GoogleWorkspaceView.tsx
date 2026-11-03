@@ -37,14 +37,15 @@ export const GoogleWorkspaceView: React.FC<GoogleWorkspaceViewProps> = ({
 }) => {
   const [fullscreen, setFullscreen] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!window.confirm(`Delete ${title} from workspace?`)) return;
+  const handleDelete = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'documents', id));
       if (selectedDoc?.id === id) {
         onSelectDoc(null);
       }
+      setDeleteConfirmId(null);
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, `documents/${id}`);
     }
@@ -201,13 +202,22 @@ export const GoogleWorkspaceView: React.FC<GoogleWorkspaceViewProps> = ({
                 {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </button>
 
-              <button
-                onClick={() => handleDelete(selectedDoc.id, selectedDoc.title)}
-                title="Delete document"
-                className="p-1.5 text-slate-400 hover:text-rose-600 bg-white border border-slate-200 rounded-lg text-xs transition-colors hover:bg-rose-50"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {deleteConfirmId === selectedDoc.id ? (
+                <button
+                  onClick={() => handleDelete(selectedDoc.id)}
+                  className="px-2.5 py-1 text-xs bg-rose-600 text-white font-bold rounded-lg shadow-xs hover:bg-rose-700 transition-colors"
+                >
+                  Confirm Delete
+                </button>
+              ) : (
+                <button
+                  onClick={() => setDeleteConfirmId(selectedDoc.id)}
+                  title="Delete document"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 bg-white border border-slate-200 rounded-lg text-xs transition-colors hover:bg-rose-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 

@@ -15,12 +15,14 @@ import { QuickOrderModal } from './components/QuickOrderModal';
 import { AddPortalModal } from './components/AddPortalModal';
 import { AddDocModal } from './components/AddDocModal';
 import { LogSheetUpdateModal } from './components/LogSheetUpdateModal';
+import { ClearDataModal } from './components/ClearDataModal';
 import { Loader2 } from 'lucide-react';
 
 function AppContent() {
   const { currentUser, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Firestore synced data
   const [portals, setPortals] = useState<PortalLink[]>([]);
@@ -38,9 +40,10 @@ function AppContent() {
   const [isAddDocModalOpen, setIsAddDocModalOpen] = useState(false);
   const [isAddOrderModalOpen, setIsAddOrderModalOpen] = useState(false);
   const [isLogUpdateModalOpen, setIsLogUpdateModalOpen] = useState(false);
+  const [isClearDataModalOpen, setIsClearDataModalOpen] = useState(false);
   const [logTargetDoc, setLogTargetDoc] = useState<DocSheetItem | null>(null);
 
-  // Monitor full screen state
+  // Monitor desktop fullscreen state
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -83,9 +86,6 @@ function AppContent() {
           ...docSnap.data()
         })) as PortalLink[];
         setPortals(items);
-        setSelectedPortal((prev) =>
-          prev ? items.find((p) => p.id === prev.id) || items[0] || null : items[0] || null
-        );
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, 'portals');
@@ -156,6 +156,7 @@ function AppContent() {
     setIsLogUpdateModalOpen(true);
   };
 
+  // Launch Portal in Full Screen (as requested: "jokhon kono portal click korbo setike full screen a sho koro")
   const handleSelectPortalAndOpen = (portal: PortalLink) => {
     setSelectedPortal(portal);
     setActiveTab('portals');
@@ -179,7 +180,7 @@ function AppContent() {
 
   return (
     <div className="h-screen w-screen overflow-hidden flex bg-white text-slate-900 font-sans">
-      {/* LEFT SIDEBAR NAVIGATION MENU (as requested: "uporer menuber ti ke ke left a menuber kore daw") */}
+      {/* LEFT SIDEBAR NAVIGATION MENU (with menu hide/show toggle) */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -196,13 +197,16 @@ function AppContent() {
           else setIsAddOrderModalOpen(true);
         }}
         onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenClearData={() => setIsClearDataModalOpen(true)}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
+        isOpen={isSidebarOpen}
+        onToggleOpen={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
       {/* RIGHT MAIN VIEWPORT */}
       <div className="flex-1 flex flex-col h-full min-w-0 bg-slate-50/50 overflow-hidden">
-        {/* HEADER (SHOWS ONLY PORTALS as requested: "hedder a sudhu portal guli show koro") */}
+        {/* HEADER (MENU TOGGLE + EXCLUSIVELY PORTALS) */}
         <Header
           portals={portals}
           selectedPortal={selectedPortal}
@@ -212,6 +216,8 @@ function AppContent() {
             else setIsAddPortalModalOpen(true);
           }}
           orders={orders}
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
 
         {/* MAIN SCROLLABLE CONTENT AREA */}
@@ -307,6 +313,15 @@ function AppContent() {
           setLogTargetDoc(null);
         }}
         document={logTargetDoc}
+      />
+
+      <ClearDataModal
+        isOpen={isClearDataModalOpen}
+        onClose={() => setIsClearDataModalOpen(false)}
+        onDataCleared={() => {
+          setSelectedPortal(null);
+          setSelectedDoc(null);
+        }}
       />
     </div>
   );

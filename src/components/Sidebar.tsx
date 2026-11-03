@@ -12,8 +12,8 @@ import {
   Minimize2,
   Trash2,
   User,
-  ShieldCheck,
-  PlusCircle
+  PanelLeftClose,
+  PanelLeft
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,8 +23,11 @@ interface SidebarProps {
   onOpenAddDoc: () => void;
   onOpenAddOrder: () => void;
   onOpenAuth: () => void;
+  onOpenClearData: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  isOpen: boolean;
+  onToggleOpen: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -34,21 +37,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenAddDoc,
   onOpenAddOrder,
   onOpenAuth,
+  onOpenClearData,
   isFullscreen,
-  onToggleFullscreen
+  onToggleFullscreen,
+  isOpen,
+  onToggleOpen
 }) => {
-  const { currentUser, logout, clearAllDemoData } = useAuth();
+  const { currentUser, logout } = useAuth();
 
-  const handleClearDemo = async () => {
-    if (window.confirm('Are you sure you want to remove all demo data? This will clear all test orders, sheets, and logs.')) {
-      await clearAllDemoData();
-    }
-  };
+  if (!isOpen) return null;
 
   return (
-    <aside className="w-60 h-full bg-white border-r border-slate-200 flex flex-col shrink-0 select-none z-30 transition-all">
-      {/* Top: ONLY LOGO IMAGE (No logo text as requested: "logo text guli remove koro. sudhu logo image rakho") */}
-      <div className="h-16 flex items-center px-5 border-b border-slate-100">
+    <aside className="w-60 h-full bg-white border-r border-slate-200 flex flex-col shrink-0 select-none z-30 transition-all duration-200 ease-in-out">
+      {/* Top Header with ONLY LOGO IMAGE and Hide Menu button */}
+      <div className="h-14 flex items-center justify-between px-4 border-b border-slate-100">
         <button
           onClick={() => setActiveTab('dashboard')}
           title="OmniSeller Desktop Workspace"
@@ -57,20 +59,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <img
             src="/logo.svg"
             alt="Logo"
-            className="w-10 h-10 object-contain drop-shadow-sm hover:scale-105 transition-transform"
+            className="w-9 h-9 object-contain drop-shadow-sm hover:scale-105 transition-transform"
           />
+        </button>
+
+        {/* Hide menu button (as requested: "menu hide/show button add koro") */}
+        <button
+          onClick={onToggleOpen}
+          title="Hide Sidebar Menu"
+          className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+        >
+          <PanelLeftClose className="w-4 h-4" />
         </button>
       </div>
 
       {/* Navigation Menu Links */}
-      <div className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+      <div className="flex-1 px-3 py-3.5 space-y-1 overflow-y-auto">
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-2">
           Navigation
         </div>
 
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeTab === 'dashboard'
               ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/20'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -82,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={() => setActiveTab('portals')}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeTab === 'portals'
               ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/20'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -94,7 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={() => setActiveTab('sheets')}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeTab === 'sheets'
               ? 'bg-emerald-600 text-white shadow-xs shadow-emerald-500/20'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -106,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={() => setActiveTab('logs')}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeTab === 'logs'
               ? 'bg-purple-600 text-white shadow-xs shadow-purple-500/20'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -117,14 +128,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         {/* Quick Actions in Sidebar */}
-        <div className="pt-4 mt-3 border-t border-slate-100 space-y-2">
+        <div className="pt-3 mt-2 border-t border-slate-100 space-y-1.5">
           <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3">
             Quick Actions
           </div>
 
           <button
             onClick={onOpenAddOrder}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
           >
             <Plus className="w-3.5 h-3.5 text-blue-600" />
             <span>Record Order</span>
@@ -132,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={onOpenAddDoc}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
           >
             <Plus className="w-3.5 h-3.5 text-emerald-600" />
             <span>Add Google Sheet</span>
@@ -154,15 +165,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <span className="text-[10px] text-slate-400 font-mono">F11</span>
         </button>
 
-        {/* Clear Demo Data Button */}
+        {/* Clear Data Button (opens ClearDataModal) */}
         {currentUser && (
           <button
-            onClick={handleClearDemo}
+            onClick={onOpenClearData}
             title="Wipe demo orders and sample sheets"
-            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors text-left"
+            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors text-left"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>Clear Demo Data</span>
+            <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+            <span>Clear Workspace Data</span>
           </button>
         )}
 
